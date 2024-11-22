@@ -29,7 +29,7 @@ class AbstractRecommender(nn.Module):
         self.logger = getLogger()
         super(AbstractRecommender, self).__init__()
 
-    def calculate_loss(self, interaction):
+    def  calculate_loss(self, interaction):
         r"""Calculate the training loss for a batch data.
 
         Args:
@@ -612,3 +612,23 @@ class ContextRecommender(AbstractRecommender):
         # sparse_embedding shape: [batch_size, num_token_seq_field+num_token_field, embed_dim] or None
         # dense_embedding shape: [batch_size, num_float_field, 2] or [batch_size, num_float_field, embed_dim] or None
         return sparse_embedding, dense_embedding
+
+
+class ColdStartRecommender(AbstractRecommender):
+    def __init__(self, config, dataset):
+        pass
+
+    def calculate_loss(self, interaction):
+        pass
+
+    def predict(self, interaction):
+        pass
+
+    def full_sort_predict(self, interaction):
+        pass
+
+    def other_parameter(self):
+        pass
+
+    def load_other_parameter(self, para):
+        pass
