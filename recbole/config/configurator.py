@@ -77,10 +77,10 @@ class Config(object):
             config_file_list (list of str): the external config file, it allows multiple config files, default is None.
             config_dict (dict): the external parameter dictionaries, default is None.
         """
-        self.compatibility_settings()
+        self.compatibility_settings() # 解决兼容性的问题 使得np旧版本和新版本同时能使用
         self._init_parameters_category()
         self.yaml_loader = self._build_yaml_loader()
-        self.file_config_dict = self._load_config_files(config_file_list)
+        self.file_config_dict = self._load_config_files(config_file_list)  # 可以输入一个配置文件的列表，然后可以读取配置文件中的选项，然后进行读取配置
         self.variable_config_dict = self._load_variable_config_dict(config_dict)
         self.cmd_config_dict = self._load_cmd_line()
         self._merge_external_config_dict()

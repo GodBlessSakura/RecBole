@@ -13,13 +13,14 @@ from recbole.quick_start import run
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", "-m", type=str, default="BPR", help="name of models")
+    parser.add_argument("--model", "-m", type=str, default="LightGCN", help="name of models")
     parser.add_argument(
-        "--dataset", "-d", type=str, default="ml-100k", help="name of datasets"
+        "--dataset", "-d", type=str, default="ml-1m", help="name of datasets"
+        # "--dataset", "-d", type=str, default="ml-1m", help="name of datasets"
     )
     parser.add_argument("--config_files", type=str, default=None, help="config files")
     parser.add_argument(
-        "--nproc", type=int, default=1, help="the number of process in this group"
+        "--nproc", type=int, default=6, help="the number of process in this group"
     )
     parser.add_argument(
         "--ip", type=str, default="localhost", help="the ip of master node"
