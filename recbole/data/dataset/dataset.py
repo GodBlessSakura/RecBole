@@ -496,7 +496,7 @@ class Dataset(torch.utils.data.Dataset):
         seq_separator = self.config["seq_separator"]
         for field in columns:
             ftype = self.field2type[field]
-            if not ftype.value.endswith("seq"):
+            if not ftype.value.endswith("seq"): # ftype： 特征类型，token
                 continue
             df[field].fillna(value="", inplace=True)
             if ftype == FeatureType.TOKEN_SEQ:
@@ -657,62 +657,62 @@ class Dataset(torch.utils.data.Dataset):
                     )
 
     def _normalize(self):
-        """Normalization if ``config['normalize_field']`` or ``config['normalize_all']`` is set.
-        See :doc:`../user_guide/data/data_args` for detail arg setting.
+            """Normalization if ``config['normalize_field']`` or ``config['normalize_all']`` is set.
+            See :doc:`../user_guide/data/data_args` for detail arg setting.
 
-        .. math::
-            x' = \frac{x - x_{min}}{x_{max} - x_{min}}
+            .. math::
+                x' = \frac{x - x_{min}}{x_{max} - x_{min}}
 
-        Note:
-            Only float-like fields can be normalized.
-        """
-        if (
-            self.config["normalize_field"] is not None
-            and self.config["normalize_all"] is True
-        ):
-            raise ValueError(
-                "Normalize_field and normalize_all can't be set at the same time."
-            )
+            Note:
+                Only float-like fields can be normalized.
+            """
+            if (
+                self.config["normalize_field"] is not None
+                and self.config["normalize_all"] is True
+            ):
+                raise ValueError(
+                    "Normalize_field and normalize_all can't be set at the same time."
+                )
 
-        if self.config["normalize_field"]:
-            fields = self.config["normalize_field"]
-            for field in fields:
-                if field not in self.field2type:
-                    raise ValueError(f"Field [{field}] does not exist.")
-                ftype = self.field2type[field]
-                if ftype != FeatureType.FLOAT and ftype != FeatureType.FLOAT_SEQ:
-                    self.logger.warning(
-                        f"{field} is not a FLOAT/FLOAT_SEQ feat, which will not be normalized."
-                    )
-        elif self.config["normalize_all"]:
-            fields = self.float_like_fields
-        else:
-            return
-
-        self.logger.debug(set_color("Normalized fields", "blue") + f": {fields}")
-
-        for field in fields:
-            for feat in self.field2feats(field):
-
-                def norm(arr):
-                    mx, mn = max(arr), min(arr)
-                    if mx == mn:
+            if self.config["normalize_field"]:
+                fields = self.config["normalize_field"]
+                for field in fields:
+                    if field not in self.field2type:
+                        raise ValueError(f"Field [{field}] does not exist.")
+                    ftype = self.field2type[field]
+                    if ftype != FeatureType.FLOAT and ftype != FeatureType.FLOAT_SEQ:
                         self.logger.warning(
-                            f"All the same value in [{field}] from [{feat}_feat]."
+                            f"{field} is not a FLOAT/FLOAT_SEQ feat, which will not be normalized."
                         )
-                        arr = 1.0
-                    else:
-                        arr = (arr - mn) / (mx - mn)
-                    return arr
+            elif self.config["normalize_all"]:
+                fields = self.float_like_fields
+            else:
+                return
 
-                ftype = self.field2type[field]
-                if ftype == FeatureType.FLOAT:
-                    feat[field] = norm(feat[field].values)
-                elif ftype == FeatureType.FLOAT_SEQ:
-                    split_point = np.cumsum(feat[field].agg(len))[:-1]
-                    feat[field] = np.split(
-                        norm(feat[field].agg(np.concatenate)), split_point
-                    )
+            self.logger.debug(set_color("Normalized fields", "blue") + f": {fields}")
+
+            for field in fields:
+                for feat in self.field2feats(field):
+
+                    def norm(arr):
+                        mx, mn = max(arr), min(arr)
+                        if mx == mn:
+                            self.logger.warning(
+                                f"All the same value in [{field}] from [{feat}_feat]."
+                            )
+                            arr = 1.0
+                        else:
+                            arr = (arr - mn) / (mx - mn)
+                        return arr
+
+                    ftype = self.field2type[field]
+                    if ftype == FeatureType.FLOAT:
+                        feat[field] = norm(feat[field].values)
+                    elif ftype == FeatureType.FLOAT_SEQ:
+                        split_point = np.cumsum(feat[field].agg(len))[:-1]
+                        feat[field] = np.split(
+                            norm(feat[field].agg(np.concatenate)), split_point
+                        )
 
     def _discretization(self):
         """Discretization if ``config['discretization']`` is set.

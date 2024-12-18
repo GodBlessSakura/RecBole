@@ -1,6 +1,6 @@
 #!/bin/bash
 
-models=("BPR" "LightGCN" "DEEPFM" "DSSM" "FM" "WIDEDEEP" "NGCF" "SGL")
+models=("BPR" "LightGCN" "DeepFM" "DSSM" "FM" "WideDeep" "NGCF" "SGL")
 port=5678
 
 for model in "${models[@]}"; do

@@ -269,7 +269,10 @@ class Config(object):
         knowledge_base_init = os.path.join(
             quick_start_config_path, "knowledge_base.yaml"
         )
-
+        #todo yzh 这里需要看下冷启动实验需要做什么内容的修改
+        cold_start_init = os.path.join(
+            quick_start_config_path, "cold_start.yaml"
+        )
         self.internal_config_dict = dict()
         for file in [
             overall_init_file,
@@ -317,6 +320,10 @@ class Config(object):
 
         elif self.internal_config_dict["MODEL_TYPE"] == ModelType.KNOWLEDGE:
             self._update_internal_config_dict(knowledge_base_init)
+
+        #todo yzh 这里需要看下冷启动方向需要补什么配置项
+        elif self.internal_config_dict["MODEL_TYPE"] in ModelType.COLDSTART:
+            self._update_internal_config_dict(cold_start_init)
 
     def _get_final_config_dict(self):
         final_config_dict = dict()

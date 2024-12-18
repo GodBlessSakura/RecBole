@@ -18,6 +18,7 @@ class ModelType(Enum):
     - ``SEQUENTIAL``: Sequential Recommendation
     - ``CONTEXT``: Context-aware Recommendation
     - ``KNOWLEDGE``: Knowledge-based Recommendation
+    - ``COLDSTART``: Cold-start Recommendation
     """
 
     GENERAL = 1
@@ -26,6 +27,7 @@ class ModelType(Enum):
     KNOWLEDGE = 4
     TRADITIONAL = 5
     DECISIONTREE = 6
+    COLDSTART = 7
 
 
 class KGDataLoaderState(Enum):
