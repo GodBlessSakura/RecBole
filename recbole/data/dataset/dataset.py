@@ -119,19 +119,19 @@ class Dataset(torch.utils.data.Dataset):
         self._init_alias()
         self._data_processing()
 
-    def _get_preset(self):
+    def _get_preset(self): # 这里其实可以用作反映射时候用的数据源
         """Initialization useful inside attributes."""
         self.dataset_path = self.config["data_path"]
 
-        self.field2type = {}
-        self.field2source = {}
-        self.field2id_token = {}
-        self.field2token_id = {}
-        self.field2bucketnum = {}
-        self.field2seqlen = {}
-        self.alias = {}
-        self._preloaded_weight = {}
-        self.benchmark_filename_list = self.config["benchmark_filename"]
+        self.field2type = {}        # 标明数据类型
+        self.field2source = {}      # 元数据 暂时不知道有什么鬼用
+        self.field2id_token = {}    # 唯一值处理为id映射表
+        self.field2token_id = {}    # NLP的时候进行使用
+        self.field2bucketnum = {}   # 分桶的时候桶的数量 用于将连续值离散化成不同的区间
+        self.field2seqlen = {}      # 序列长度
+        self.alias = {}             # 字段别名
+        self._preloaded_weight = {} # 预加载的权重
+        self.benchmark_filename_list = self.config["benchmark_filename"]  # 基准文件名
 
     def _get_field_from_config(self):
         """Initialization common field names."""
