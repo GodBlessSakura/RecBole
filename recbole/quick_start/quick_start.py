@@ -23,6 +23,7 @@ from recbole.config import Config
 from recbole.data import (
     create_dataset,
     data_preparation,
+    split_warm_cold_data
 )
 from recbole.data.transform import construct_transform
 from recbole.utils import (
@@ -130,6 +131,8 @@ def run_recbole(
     logger.info(dataset)
 
     # dataset splitting
+    if(config['COLD_START_MODEL']):
+        warm_data,cold_data = split_warm_cold_data(dataset)
     train_data, valid_data, test_data = data_preparation(config, dataset)
 
     # model loading and initialization

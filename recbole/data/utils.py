@@ -376,3 +376,17 @@ def create_samplers(config, dataset, built_datasets):
     )
     test_sampler = test_sampler.set_phase("test") if test_sampler else None
     return train_sampler, valid_sampler, test_sampler
+
+def split_warm_cold_data(config, dataset):
+    """
+    根据冷热比例分割数据集，并处理对应的冷数据集中数据在热数据集中出现的问题
+        - 按照item的数量，根据config中warm和cold的数量进行冷热划分
+        - 统计在冷数据中出现的item的集合
+        - 在对应的热训练数据和热验证数据中去掉冷数据中的内容，防止信息泄露
+    Args:
+        config:
+        dataset:
+
+    Returns:
+
+    """
