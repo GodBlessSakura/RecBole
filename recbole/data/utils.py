@@ -12,7 +12,6 @@ recbole.data.utils
 ########################
 """
 
-import copy
 import importlib
 import os
 import pickle
@@ -21,7 +20,7 @@ from typing import Literal
 
 from recbole.data.dataloader import *
 from recbole.sampler import KGSampler, Sampler, RepeatableSampler
-from recbole.utils import ModelType, ensure_dir, get_local_time, set_color
+from recbole.utils import ModelType, ensure_dir, set_color
 from recbole.utils.argument_list import dataset_arguments
 
 
@@ -390,3 +389,4 @@ def split_warm_cold_data(config, dataset):
     Returns:
 
     """
+
