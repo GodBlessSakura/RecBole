@@ -1806,6 +1806,33 @@ class Dataset(torch.utils.data.Dataset):
 
         return datasets
 
+
+
+    def cold_build(self):
+        """ 在冷启动的时候指定文件进行读取文件，而不是整个文件读取之后再进行分割，和build的区别仅仅在于不进行分割直接进行返回"""
+        self._change_feat_format()
+
+        if self.benchmark_filename_list is not None:
+            self._drop_unused_col()
+            cumsum = list(np.cumsum(self.file_size_list))
+            datasets = [
+                self.copy(self.inter_feat[start:end])
+                for start, end in zip([0] + cumsum[:-1], cumsum)
+            ]
+            return datasets
+
+        # ordering
+        ordering_args = self.config["eval_args"]["order"]
+        if ordering_args == "RO":
+            self.shuffle()
+        elif ordering_args == "TO":
+            self.sort(by=self.time_field)
+        else:
+            raise NotImplementedError(
+                f"The ordering_method [{ordering_args}] has not been implemented."
+            )
+        return self
+
     def save(self):
         """Saving this :class:`Dataset` object to :attr:`config['checkpoint_dir']`."""
         save_dir = self.config["checkpoint_dir"]

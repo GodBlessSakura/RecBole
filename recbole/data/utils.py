@@ -42,12 +42,13 @@ def create_dataset(config):
     else:
         model_type = config["MODEL_TYPE"]
         type2class = {
-            ModelType.GENERAL: "Dataset",
+            ModelType.GENERAL: "ColdStartDataset",
             ModelType.SEQUENTIAL: "SequentialDataset",
             ModelType.CONTEXT: "Dataset",
             ModelType.KNOWLEDGE: "KnowledgeBasedDataset",
             ModelType.TRADITIONAL: "Dataset",
             ModelType.DECISIONTREE: "Dataset",
+            ModelType.COLDSTART: "ColdStartDataset",
         }
         dataset_class = getattr(dataset_module, type2class[model_type])
 
@@ -165,6 +166,7 @@ def data_preparation(config, dataset):
         built_datasets = dataset.build()
 
         train_dataset, valid_dataset, test_dataset = built_datasets
+
         train_sampler, valid_sampler, test_sampler = create_samplers(
             config, dataset, built_datasets
         )
@@ -376,17 +378,66 @@ def create_samplers(config, dataset, built_datasets):
     test_sampler = test_sampler.set_phase("test") if test_sampler else None
     return train_sampler, valid_sampler, test_sampler
 
-def split_warm_cold_data(config, dataset):
-    """
-    根据冷热比例分割数据集，并处理对应的冷数据集中数据在热数据集中出现的问题
-        - 按照item的数量，根据config中warm和cold的数量进行冷热划分
-        - 统计在冷数据中出现的item的集合
-        - 在对应的热训练数据和热验证数据中去掉冷数据中的内容，防止信息泄露
+def data_preparation_new(config, dataset):
+    """Split the dataset by :attr:`config['[valid|test]_eval_args']` and create training, validation and test dataloader.
+
+    Note:
+        If we can load split dataloaders by :meth:`load_split_dataloaders`, we will not create new split dataloaders.
+
     Args:
-        config:
-        dataset:
+        config (Config): An instance object of Config, used to record parameter information.
+        dataset (Dataset): An instance object of Dataset, which contains all interaction records.
 
     Returns:
-
+        tuple:
+            - train_data (AbstractDataLoader): The dataloader for training.
+            - valid_data (AbstractDataLoader): The dataloader for validation.
+            - test_data (AbstractDataLoader): The dataloader for testing.
     """
+    dataloaders = load_split_dataloaders(config)
+    if dataloaders is not None:
+        train_data, valid_data, test_data = dataloaders
+        dataset._change_feat_format()
+    else:
+        built_datasets = dataset.build()
+        train_dataset, valid_dataset, test_dataset = built_datasets
+
+        train_sampler, valid_sampler, test_sampler = create_samplers(
+            config, dataset, built_datasets
+        )
+        train_data = get_dataloader(config, "train")(
+            config, train_dataset, train_sampler, shuffle=config["shuffle"]
+        )
+
+        valid_data = get_dataloader(config, "valid")(
+            config, valid_dataset, valid_sampler, shuffle=False
+        )
+        test_data = get_dataloader(config, "test")(
+            config, test_dataset, test_sampler, shuffle=False
+        )
+        if config["save_dataloaders"]:
+            save_split_dataloaders(
+                config, dataloaders=(train_data, valid_data, test_data)
+            )
+
+    logger = getLogger()
+    logger.info(
+        set_color("[Training]: ", "pink")
+        + set_color("train_batch_size", "cyan")
+        + " = "
+        + set_color(f'[{config["train_batch_size"]}]', "yellow")
+        + set_color(" train_neg_sample_args", "cyan")
+        + ": "
+        + set_color(f'[{config["train_neg_sample_args"]}]', "yellow")
+    )
+    logger.info(
+        set_color("[Evaluation]: ", "pink")
+        + set_color("eval_batch_size", "cyan")
+        + " = "
+        + set_color(f'[{config["eval_batch_size"]}]', "yellow")
+        + set_color(" eval_args", "cyan")
+        + ": "
+        + set_color(f'[{config["eval_args"]}]', "yellow")
+    )
+    return train_data, valid_data, test_data
 

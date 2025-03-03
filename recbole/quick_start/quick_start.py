@@ -23,7 +23,6 @@ from recbole.config import Config
 from recbole.data import (
     create_dataset,
     data_preparation,
-    split_warm_cold_data
 )
 from recbole.data.transform import construct_transform
 from recbole.utils import (
@@ -32,7 +31,6 @@ from recbole.utils import (
     get_trainer,
     init_seed,
     set_color,
-    get_flops,
     get_environment,
 )
 
@@ -127,11 +125,42 @@ def run_recbole(
     logger.info(config)
 
     # dataset filtering
-    dataset = create_dataset(config)
+    if(config["cold_start"]):
+        base_data_dir = config["data_path"]
+        if(config["eval_args"]["cold"]):
+            config["data_path"] = base_data_dir + "/cold_train/"
+            train_dataset = create_dataset(config)
+            config["data_path"] = base_data_dir + "/cold_val/"
+            val_dataset = create_dataset(config)
+            config["data_path"] = base_data_dir + "/cold_test/"
+            test_dataset = create_dataset(config)
+        elif (config["eval_args"]["warm"]):
+            config["data_path"] = base_data_dir + "/warm_train/"
+            train_dataset = create_dataset(config)
+            config["data_path"] = base_data_dir + "/warm_val/"
+            val_dataset = create_dataset(config)
+            config["data_path"] = base_data_dir + "/warm_test/"
+            test_dataset = create_dataset(config)
+        elif (config["eval_args"]["overall"]):
+            config["data_path"] = base_data_dir + "/overall_train/"
+            train_dataset = create_dataset(config)
+            config["data_path"] = base_data_dir + "/overall_val/"
+            val_dataset = create_dataset(config)
+            config["data_path"] = base_data_dir + "/overall_test/"
+            test_dataset = create_dataset(config)
+    else:
+        dataset = create_dataset(config)
     logger.info(dataset)
 
     # dataset splitting
-    train_data, valid_data, test_data = data_preparation(config, dataset)
+    if(config["cold_start"]):
+            train_data, _, _ = data_preparation(config, train_dataset)
+            _, valid_data, _ = data_preparation(config, val_dataset)
+            _, _, test_data = data_preparation(config, test_dataset)
+
+
+    else:
+        train_data, valid_data, test_data = data_preparation(config, dataset)
 
     # model loading and initialization
     init_seed(config["seed"] + config["local_rank"], config["reproducibility"])
@@ -139,8 +168,8 @@ def run_recbole(
     logger.info(model)
 
     transform = construct_transform(config)
-    flops = get_flops(model, dataset, config["device"], logger, transform)
-    logger.info(set_color("FLOPs", "blue") + f": {flops}")
+    # flops = get_flops(model, dataset, config["device"], logger, transform)
+    # logger.info(set_color("FLOPs", "blue") + f": {flops}")
 
     # trainer loading and initialization
     trainer = get_trainer(config["MODEL_TYPE"], config["model"])(config, model)

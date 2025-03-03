@@ -37,6 +37,7 @@ if __name__ == "__main__":
         default=0,
         help="the global rank offset of this group",
     )
+    parser.add_argument("--MODLE_TYPE", type=str, default="COLDSTART", help="cold or warm")
 
     args, _ = parser.parse_known_args()
 
